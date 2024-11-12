@@ -11,15 +11,8 @@ public class VoiceController : MonoBehaviour
         [SerializeField] string key;
         [SerializeField] AudioClip clip;
 
-        public string getKey()
-        {
-            return key;
-        }
-
-        public AudioClip getAudioClip()
-        {
-            return clip;
-        }
+        public string getKey() { return key; }
+        public AudioClip getAudioClip() { return clip; }
     }
 
     [System.Serializable]
@@ -32,21 +25,13 @@ public class VoiceController : MonoBehaviour
         {
             foreach (VoiceClip clip in voiceClips)
             {
-                if (clip.getKey() == clipKey)
-                {
-                    return clip;
-                }
+                if (clip.getKey() == clipKey) return clip;
             }
-
             return null;
         }
 
-        public VoiceClip[] getVoiceClips()
-        {
-            return voiceClips;
-        }
+        public VoiceClip[] getVoiceClips() { return voiceClips; }
     }
-
 
     [SerializeField] private KeyPressListener keyPressHandler;
     [SerializeField] private AudioClip correctSound;
@@ -64,17 +49,13 @@ public class VoiceController : MonoBehaviour
     void OnEnable()
     {
         audioSource = GetComponent<AudioSource>();
-
-        // Subscribe to the events
         KeyPressListener.OnLeftArrowPressed += HandleLeftArrowPressed;
         KeyPressListener.OnRightArrowPressed += HandleRightArrowPressed;
-
         StartCoroutine(PlayIntro());
     }
 
     void OnDisable()
     {
-        // Unsubscribe from the events to avoid memory leaks
         KeyPressListener.OnLeftArrowPressed -= HandleLeftArrowPressed;
         KeyPressListener.OnRightArrowPressed -= HandleRightArrowPressed;
     }
@@ -117,7 +98,7 @@ public class VoiceController : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
 
-        audioSource.panStereo = 0;
+        SetAudioPan(0);
         correctVoice = voices[Random.Range(0, voices.Length)];
         currentVoiceClip = correctVoice.FindVoiceClip("MyTurn");
         audioSource.clip = currentVoiceClip.getAudioClip();
@@ -158,7 +139,7 @@ public class VoiceController : MonoBehaviour
 
     IEnumerator CorrectAudio()
     {
-        audioSource.panStereo = 0;
+        SetAudioPan(0);
         audioSource.clip = correctSound;
         audioSource.Play();
 
@@ -166,44 +147,24 @@ public class VoiceController : MonoBehaviour
         keyPressed = false;
     }
 
-    /*IEnumerator PlayAudio()
-    {
-        yield return new WaitForSeconds(1f);
-
-        currentVoiceClip = correctVoice.FindVoiceClip("MyTurn");
-        audioSource.clip = currentVoiceClip.getAudioClip();
-        audioSource.Play();
-
-        yield return new WaitForSeconds(3f);
-
-        for (int i = 1; i <= 3; i++)
-        {
-            currentVoice = voices[Random.Range(0, voices.Length)];
-            currentVoiceClip = PickVoiceClip(currentVoice);
-            audioSource.clip = currentVoiceClip.getAudioClip();
-            audioSource.Play();
-            keyPressHandler.enabled = true;
-
-            yield return new WaitForSeconds(1f);
-
-            if (currentVoice == correctVoice && !keyPressed) SceneManager.LoadScene("EndScene");
-            keyPressed = false;
-        }
-
-        StartCoroutine(PlayAudio());
-    }*/
-
     VoiceClip PickVoiceClip(Voice voice)
     {
         string direction = Random.Range(0, 2) == 0 ? "Left" : "Right";
         VoiceClip voiceClip = voice.FindVoiceClip(direction);
-
         return voiceClip;
     }
 
     void PickEar()
     {
         int ear = Random.Range(0, 2) == 0 ? -1 : 1;
-        audioSource.panStereo = ear;
+        SetAudioPan(ear);
+    }
+
+    void SetAudioPan(float pan)
+    {
+        audioSource.spatialBlend = 1.0f;
+        Vector3 listenerPosition = Camera.main.transform.position;
+        Vector3 audioPosition = listenerPosition + new Vector3(pan * 0.5f, 0, 0);
+        audioSource.transform.position = audioPosition;
     }
 }
